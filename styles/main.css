@@ -1,0 +1,94 @@
+:root {
+    --white: #ffffff;
+    --black: #000000;
+    --celadon-green: #36827fff;
+    --celadon-green-2: #36767f;
+    --snow: #f4ededff;
+    --snow-2: #eadddd;
+    --eerie-black: #262626;
+    --eerie-black-2: #2f2f2f;
+
+    --light: var(--snow);
+    --soft-light: var(--snow-2);
+    --dark: var(--eerie-black);
+    --soft-dark: var(--eerie-black-2);
+    --primary: var(--celadon-green);
+    --secondary: var(--celadon-green-2);
+    --ternary: var(--naples-yellow);
+}
+
+/* Base styles */
+body {
+    font-family: 'Atkinson Hyperlegible', sans-serif;
+    color: var(--fontColor);
+    background: var(--bg);
+    margin: 0;
+}
+
+header {
+    position: sticky;
+    top: 0px;
+    margin-bottom: 2em;
+}
+
+footer {
+    margin-top: 2em;
+}
+
+h1 a {
+    color: var(--fontColor);
+    text-decoration: none;
+} h1 a:hover {
+    text-decoration: underline;
+}
+
+p {
+    text-align: justify;
+    margin: 1em 10%
+}
+
+/* Id's */
+
+/* Classes */
+.themeBtn {
+    border-radius: 5px;
+    border-color: var(--btnBg);
+    border-style: solid;
+    font-size: larger;
+    color: var(--btnFontColor);
+    background-color: var(--btnBg);
+} .themeBtn:hover {
+    color: var(--fontColor);
+    background-color: transparent;
+}
+
+.header-footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    padding: 0% 10%;
+    color: var(--hfFontColor);
+    background: var(--hfBg);
+} .header-footer h1 {
+    margin: .67em 0em;
+    margin-right: auto;
+}
+
+/* Themes */
+.light-theme {
+    --fontColor: var(--dark);
+    --bg: var(--light);
+    --hfFontColor: var(--dark);
+    --hfBg: var(--soft-light);
+    --btnFontColor: var(--light);
+    --btnBg: var(--dark);
+}
+
+.dark-theme {
+    --fontColor: var(--light);
+    --bg: var(--dark);
+    --hfFontColor: var(--light);
+    --hfBg: var(--soft-dark);
+    --btnFontColor: var(--dark);
+    --btnBg: var(--light);
+}
