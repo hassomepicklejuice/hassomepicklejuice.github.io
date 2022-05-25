@@ -36,15 +36,10 @@ footer {
 }
 
 h1 a {
-    color: var(--fontColor);
-    text-decoration: none;
+    color: inherit;
+    text-decoration: inherit;
 } h1 a:hover {
     text-decoration: underline;
-}
-
-p {
-    text-align: justify;
-    margin: 1em 10%
 }
 
 /* Id's */
@@ -72,6 +67,11 @@ p {
 } .header-footer h1 {
     margin: .67em 0em;
     margin-right: auto;
+}
+
+.text {
+    text-align: justify;
+    margin: 1em 10%;
 }
 
 /* Themes */
