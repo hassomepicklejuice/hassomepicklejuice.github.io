@@ -20,6 +20,7 @@
 /* Base styles */
 body {
     font-family: 'Atkinson Hyperlegible', sans-serif;
+    text-transform: lowercase;
     color: var(--fontColor);
     background: var(--bg);
     margin: 0;
@@ -49,7 +50,8 @@ h1 a {
     border-radius: 5px;
     border-color: var(--btnBg);
     border-style: solid;
-    font-size: larger;
+    font-family: inherit;
+    font-size: medium;
     color: var(--btnFontColor);
     background-color: var(--btnBg);
 } .themeBtn:hover {
@@ -61,12 +63,16 @@ h1 a {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    padding: 0% 10%;
+    padding: 1em 10%;
     color: var(--hfFontColor);
     background: var(--hfBg);
 } .header-footer h1 {
-    margin: .67em 0em;
+    margin: 0%;
     margin-right: auto;
+}
+
+.menu {
+    margin-left: auto;
 }
 
 .text {

@@ -8,17 +8,17 @@ switcher.addEventListener('click', function() {
         case "light-theme":
             document.body.classList.toggle('light-theme');
             document.body.classList.toggle('dark-theme');
-            this.textContent = "LIGHT"
+            this.textContent = "light"
             break;
         case "dark-theme":
             document.body.classList.toggle('light-theme');
             document.body.classList.toggle('dark-theme');
-            this.textContent = "DARK"
+            this.textContent = "dark"
             break;
         default:
             document.body.classList.add('light-theme');
             document.body.classList.remove('dark-theme');
-            this.textContent = "DARK"
+            this.textContent = "dark"
             break;
     }
 });
