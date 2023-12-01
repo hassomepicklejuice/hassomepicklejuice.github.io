@@ -23,3 +23,7 @@ url = "https://github.com/hassomepicklejuice"
 [[params.socialIcons]]
 name = "tumblr"
 url = "https://hassomepicklejuice.tumblr.com/"
+
+[[params.socialIcons]]
+name = "mastodon"
+url = "https://mastodon.social/@hassomepicklejuice"
