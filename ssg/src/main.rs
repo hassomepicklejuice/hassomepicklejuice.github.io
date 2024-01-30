@@ -57,23 +57,14 @@ fn main() -> Result<()> {
     }
 
     for file in args.files {
-        render_file(&mut handlebars, file, &args.out_dir, &cwd)?;
+        render_file(&mut handlebars, &file, &args.out_dir, &cwd)?;
     }
 
     Ok(())
 }
 
-fn render_file(
-    hb: &mut Handlebars,
-    file: impl AsRef<Path>,
-    out_dir: impl AsRef<Path>,
-    cwd: impl AsRef<Path>,
-) -> Result<()> {
-    let file = file.as_ref();
-
+fn render_file(hb: &mut Handlebars, file: &Path, out_dir: &Path, cwd: &Path) -> Result<()> {
     if file.is_file() {
-        let (out_dir, cwd) = (out_dir.as_ref(), cwd.as_ref());
-
         let mut data = read_source(&file)
             .with_context(|| format!("Failed to read source file at {}", file.display()))?;
 
@@ -113,7 +104,7 @@ fn render_file(
             .with_context(|| format!("Failed to read source directory {}", file.display()))?
         {
             if let Ok(file) = file {
-                render_file(hb, file.path(), &out_dir, &cwd)?;
+                render_file(hb, &file.path(), &out_dir, &cwd)?;
             }
         }
     }
