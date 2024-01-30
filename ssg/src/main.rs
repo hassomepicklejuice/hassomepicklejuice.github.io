@@ -3,7 +3,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use anyhow::{anyhow, Result};
+use anyhow::{anyhow, Context, Result};
 use clap::Parser;
 use handlebars::Handlebars;
 use toml::{Table, Value};
@@ -16,19 +16,17 @@ struct Args {
     #[arg(short, long)]
     templates: Vec<PathBuf>,
     /// Path to the output directory, defaults to the current directory
-    #[arg(short, long)]
-    out_dir: Option<PathBuf>,
+    #[arg(short, long, default_value_os_t = PathBuf::from("."))]
+    out_dir: PathBuf,
     /// Paths to the files to be rendered, or directories containing the source files
+    #[arg(required = true, num_args = 1..)]
     files: Vec<PathBuf>,
 }
 
-fn main() {
+fn main() -> Result<()> {
     let args = Args::parse();
 
-    assert!(!args.files.is_empty());
-
-    fs::create_dir_all(args.out_dir.unwrap_or_else(|| PathBuf::from(".")))
-        .expect("Created output directory");
+    let cwd = std::env::current_dir().context("Failed to get the current working directory")?;
 
     let mut handlebars = Handlebars::new();
 
@@ -40,29 +38,61 @@ fn main() {
             };
             handlebars
                 .register_template_file(name, &template)
-                .expect("Registering template file");
+                .with_context(|| {
+                    format!(
+                        "Failed to register the template file at {}",
+                        template.display(),
+                    )
+                })?;
         } else if template.is_dir() {
             handlebars
-                .register_templates_directory(template, Default::default())
-                .expect("Registering template directory");
+                .register_templates_directory(&template, Default::default())
+                .with_context(|| {
+                    format!(
+                        "Failed to register the template files in {}",
+                        template.display()
+                    )
+                })?;
         }
     }
 
     for file in args.files {
-        let mut data = read_source(file).expect("Reading source");
+        let mut data = read_source(&file)
+            .with_context(|| format!("Failed to read source file at {}", file.display()))?;
 
-        parse_body(&mut data).expect("Body was parsed succesfully");
+        parse_body(&mut data)?;
 
         let template = data["template"]
             .as_str()
-            .expect("'template' should be a string");
+            .context("'template' field should be a String")?;
 
         let rendered = handlebars
             .render(template, &data)
-            .expect("Rendering source");
+            .with_context(|| format!("Failed to render data {data:?} to template {template}"))?;
+
+        let out_file = args.out_dir.join(match file.strip_prefix(&cwd) {
+            Ok(file) => file.to_owned(),
+            Err(_) if file.has_root() => file.file_name().context("Not a valid filename")?.into(),
+            Err(_) => file,
+        });
+
+        fs::create_dir_all(
+            out_file
+                .parent()
+                .context("Output file has no parent directory")?,
+        )
+        .with_context(|| {
+            format!(
+                "Failed to create parent directory of output file {}",
+                out_file.display()
+            )
+        })?;
+
+        fs::write(&out_file, rendered)
+            .with_context(|| format!("Failed to write output file {}", out_file.display()))?;
     }
 
-    println!("Hello, world!");
+    Ok(())
 }
 
 fn parse_body(data: &mut Table) -> Result<()> {
