@@ -1,11 +1,20 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en-US">
 
 <head>
-  <title>Hassomepicklejuice - Hello, World!</title>
+  <title>hassomepicklejuice{{#if title}} - {{title}}{{/if}}</title>
+  <meta name="author" content="hassomepicklejuice" />
+  <meta name="description" content="personal page" />
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width" />
+  {{#if stylesheet}}
+  <link rel="stylesheet" href="{{stylesheet}}" />
+  {{else}}
   <link rel="stylesheet" href="style.css" />
+  {{/if}}
+  {{#if script}}
+  <script src="{{script}}" defer></script>
+  {{/if}}
 </head>
 
 <body>
@@ -22,7 +31,7 @@
   </header>
 
   <main>
-    <p>Hello, World!</p>
+    {{{BODY}}}
   </main>
 
   <footer>

@@ -14,7 +14,7 @@ fn main() {
 
     for source in sources {
         let content = fs::read_to_string(source).expect("Reading source file");
-        let (meta, body) = content.split_once("\n***\n").unwrap_or(("", &content));
+        let (meta, body) = content.split_once("***\n").unwrap_or(("", &content));
         let mut meta = meta.parse::<Table>().unwrap_or_default();
         meta.insert("BODY".to_string(), body.into());
 
