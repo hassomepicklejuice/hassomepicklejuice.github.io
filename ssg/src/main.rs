@@ -57,6 +57,23 @@ fn main() -> Result<()> {
     }
 
     for file in args.files {
+        render_file(&mut handlebars, file, &args.out_dir, &cwd)?;
+    }
+
+    Ok(())
+}
+
+fn render_file(
+    hb: &mut Handlebars,
+    file: impl AsRef<Path>,
+    out_dir: impl AsRef<Path>,
+    cwd: impl AsRef<Path>,
+) -> Result<()> {
+    let file = file.as_ref();
+
+    if file.is_file() {
+        let (out_dir, cwd) = (out_dir.as_ref(), cwd.as_ref());
+
         let mut data = read_source(&file)
             .with_context(|| format!("Failed to read source file at {}", file.display()))?;
 
@@ -66,14 +83,14 @@ fn main() -> Result<()> {
             .as_str()
             .context("'template' field should be a String")?;
 
-        let rendered = handlebars
+        let rendered = hb
             .render(template, &data)
             .with_context(|| format!("Failed to render data {data:?} to template {template}"))?;
 
-        let out_file = args.out_dir.join(match file.strip_prefix(&cwd) {
-            Ok(file) => file.to_owned(),
-            Err(_) if file.has_root() => file.file_name().context("Not a valid filename")?.into(),
-            Err(_) => file,
+        let out_file = out_dir.join(match file.strip_prefix(&cwd) {
+            Ok(file) => file.as_os_str(),
+            Err(_) if file.has_root() => file.file_name().context("Not a valid filename")?,
+            Err(_) => file.as_os_str(),
         });
 
         fs::create_dir_all(
@@ -90,6 +107,15 @@ fn main() -> Result<()> {
 
         fs::write(&out_file, rendered)
             .with_context(|| format!("Failed to write output file {}", out_file.display()))?;
+    } else if file.is_dir() {
+        for file in file
+            .read_dir()
+            .with_context(|| format!("Failed to read source directory {}", file.display()))?
+        {
+            if let Ok(file) = file {
+                render_file(hb, file.path(), &out_dir, &cwd)?;
+            }
+        }
     }
 
     Ok(())
