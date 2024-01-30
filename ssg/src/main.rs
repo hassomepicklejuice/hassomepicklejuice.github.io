@@ -1,4 +1,4 @@
-use std::fs;
+use std::{fs, path::Path};
 
 use handlebars::Handlebars;
 use toml::Table;
@@ -13,21 +13,35 @@ fn main() {
     sources.next();
 
     for source in sources {
-        let content = fs::read_to_string(source).expect("Reading source file");
-        let (meta, body) = content.split_once("***\n").unwrap_or(("", &content));
-        let mut meta = meta.parse::<Table>().unwrap_or_default();
-        meta.insert("BODY".to_string(), body.into());
+        let meta = read_source(source).expect("Reading source");
 
-        let template = meta
-            .get("template")
-            .map(|v| v.to_string())
-            .unwrap_or("article".to_string());
+        let template = meta["template"].as_str().expect("'template' is a string");
+        let typ = meta["type"].as_str().expect("'type' is a string");
 
-        let rendered = handlebars
-            .render(&template, &meta)
-            .expect("Rendering source");
-        eprintln!("{rendered}");
+        match typ {
+            "html" => {
+                let rendered = handlebars
+                    .render(template, &meta)
+                    .expect("Rendering source");
+                eprintln!("{rendered}");
+            }
+            _ => {
+                eprintln!("Cannot handle files of type {typ} yet");
+            }
+        }
     }
 
     println!("Hello, world!");
+}
+
+fn read_source(source: impl AsRef<Path>) -> Result<Table, std::io::Error> {
+    let content = fs::read_to_string(source)?;
+    let (meta, body) = content.split_once("***\n").unwrap_or(("", &content));
+    let mut meta = meta.parse::<Table>().unwrap_or_default();
+
+    meta.entry("template").or_insert("article".into());
+    meta.entry("type").or_insert("html".into());
+    meta.insert("BODY".to_string(), body.into());
+
+    Ok(meta)
 }
