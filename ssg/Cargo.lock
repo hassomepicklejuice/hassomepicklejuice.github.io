@@ -366,6 +366,7 @@ dependencies = [
  "clap",
  "handlebars",
  "toml",
+ "walkdir",
 ]
 
 [[package]]

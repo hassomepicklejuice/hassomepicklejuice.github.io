@@ -3,30 +3,29 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use anyhow::{anyhow, Context, Result};
+use anyhow::{anyhow, bail, Context, Result};
 use clap::Parser;
 use handlebars::Handlebars;
 use toml::{Table, Value};
+use walkdir::WalkDir;
 
 /// Custom static site generator.
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Args {
     /// Paths to Handlebars template files or directories containing template files
-    #[arg(short, long)]
+    #[arg(short, long, default_values_os_t = [PathBuf::from("templates")])]
     templates: Vec<PathBuf>,
-    /// Path to the output directory, defaults to the current directory
-    #[arg(short, long, default_value_os_t = PathBuf::from("."))]
+    /// Path to the output directory
+    #[arg(short, long, default_value_os_t = PathBuf::from("docs"))]
     out_dir: PathBuf,
-    /// Paths to the files to be rendered, or directories containing the source files
-    #[arg(required = true, num_args = 1..)]
-    files: Vec<PathBuf>,
+    /// Path to the input directory
+    #[arg(short, long, default_value_os_t = PathBuf::from("src"))]
+    in_dir: PathBuf,
 }
 
 fn main() -> Result<()> {
     let args = Args::parse();
-
-    let cwd = std::env::current_dir().context("Failed to get the current working directory")?;
 
     let mut handlebars = Handlebars::new();
 
@@ -56,59 +55,49 @@ fn main() -> Result<()> {
         }
     }
 
-    for file in args.files {
-        render_file(&mut handlebars, &file, &args.out_dir, &cwd)?;
+    render_dir(&mut handlebars, &args.in_dir, &args.out_dir)?;
+
+    Ok(())
+}
+
+fn render_dir(hb: &mut Handlebars, in_dir: &Path, out_dir: &Path) -> Result<()> {
+    if !in_dir.is_dir() {
+        bail!(
+            "Input path should be a directory, {} is not a directory",
+            in_dir.display()
+        )
+    }
+
+    for entry in WalkDir::new(in_dir)
+        .follow_links(true)
+        .into_iter()
+        .filter_map(|e| e.ok())
+    {
+        let in_file = entry.path();
+        let out_file = out_dir.join(in_file.strip_prefix(in_dir)?);
+        if in_file.is_dir() {
+            fs::create_dir_all(out_file)?;
+        } else if in_file.is_file() {
+            render_file(hb, in_file, &out_file)?;
+        }
     }
 
     Ok(())
 }
 
-fn render_file(hb: &mut Handlebars, file: &Path, out_dir: &Path, cwd: &Path) -> Result<()> {
-    if file.is_file() {
-        let mut data = read_source(&file)
-            .with_context(|| format!("Failed to read source file at {}", file.display()))?;
+fn render_file(hb: &mut Handlebars, in_file: &Path, out_file: &Path) -> Result<()> {
+    let mut data = read_source(in_file).context("Failed to read source file")?;
 
-        parse_body(&mut data)?;
+    parse_body(&mut data)?;
 
-        let template = data["template"]
-            .as_str()
-            .context("'template' field should be a String")?;
+    let template = data["template"]
+        .as_str()
+        .context("'template' field should be a String")?;
+    let rendered = hb
+        .render(template, &data)
+        .with_context(|| format!("Failed to render template {template} with data {data:#?}"))?;
 
-        let rendered = hb
-            .render(template, &data)
-            .with_context(|| format!("Failed to render data {data:?} to template {template}"))?;
-
-        let out_file = out_dir.join(match file.strip_prefix(&cwd) {
-            Ok(file) => file.as_os_str(),
-            Err(_) if file.has_root() => file.file_name().context("Not a valid filename")?,
-            Err(_) => file.as_os_str(),
-        });
-
-        fs::create_dir_all(
-            out_file
-                .parent()
-                .context("Output file has no parent directory")?,
-        )
-        .with_context(|| {
-            format!(
-                "Failed to create parent directory of output file {}",
-                out_file.display()
-            )
-        })?;
-
-        fs::write(&out_file, rendered)
-            .with_context(|| format!("Failed to write output file {}", out_file.display()))?;
-    } else if file.is_dir() {
-        for file in file
-            .read_dir()
-            .with_context(|| format!("Failed to read source directory {}", file.display()))?
-        {
-            if let Ok(file) = file {
-                render_file(hb, &file.path(), &out_dir, &cwd)?;
-            }
-        }
-    }
-
+    fs::write(out_file, rendered).context("Failed to write rendered output to file")?;
     Ok(())
 }
 
