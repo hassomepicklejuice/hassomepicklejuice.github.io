@@ -1,0 +1,74 @@
+@import url("https://unpkg.com/@catppuccin/palette/css/catppuccin.css");
+@import url("https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible");
+
+@font-face {
+  font-family: "pulukin";
+  src: url("https://jansa-tp.github.io/linja-pi-pu-lukin/PuLukin.otf") format("opentype");
+}
+
+body {
+  font-family: "Atkinson Hyperlegible", sans-serif;
+  color: var(--ctp-mocha-text);
+  background-color: var(--ctp-mocha-base);
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+header,
+footer {
+  background-color: var(--ctp-mocha-crust);
+  margin: 0;
+  padding: 20px 10%;
+}
+
+/*nav {}*/
+
+main {
+  margin: 0;
+  padding: 10px 15%;
+  flex: 1;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin: 0;
+}
+
+h1 {
+  color: var(--ctp-mocha-red);
+}
+
+h2 {
+  color: var(--ctp-mocha-peach);
+}
+
+h3 {
+  color: var(--ctp-mocha-green);
+}
+
+h4 {
+  color: var(--ctp-mocha-sky);
+}
+
+h5 {
+  color: var(--ctp-mocha-blue);
+}
+
+h6 {
+  color: var(--ctp-mocha-pink);
+}
+
+dt {
+  color: var(--ctp-mocha-teal);
+  font-weight: 700;
+}
+
+a {
+  color: var(--ctp-mocha-mauve);
+}
